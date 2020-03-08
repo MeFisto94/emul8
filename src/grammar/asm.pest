@@ -1,0 +1,35 @@
+register = @{ "V" ~ ASCII_HEX_DIGIT }
+special_register = @{"K" | "DT" | "F" | "B" | "I"}
+address = @{("0x")? ~ ASCII_HEX_DIGIT{1, 3}} // actually this can be both: an address or a constant
+ident_char = _{ 'a'..'z' | 'A'..'Z' | '0'..'9' | "_" }
+identifier =  @{('a'..'z' | 'A'..'Z') ~ ident_char* | "_" ~ ident_char+ }
+math_operator = { "SUB" | "ADD"}
+conditionals = { "SE" | "SNE" }
+ldi_operator = { "LDI" } // this is done so strangely so in opcode we have an "operator"
+ld_operator = { "LD" }
+jmp_operator = { "JMP" }
+drw_operator = { "DRW" }
+call_operator = { "CALL" }
+label_definition = { identifier ~ ":" }
+opcode = { "CLS" | "RET" |
+  math_operator ~ register ~ "," ~ register |
+  call_operator ~ (address | identifier) |
+  ldi_operator ~ address |
+  jmp_operator ~ (address | identifier) |
+  math_operator ~ register ~ "," ~ address |
+  drw_operator ~ register ~ "," ~ register ~ "," ~ address |
+  conditionals ~ register ~ "," ~ address |
+  ld_operator ~ register ~ "," ~ (special_register | address) | 
+  ld_operator ~ special_register ~ "," ~ register |
+  label_definition
+}
+COMMENT = {";" ~ (!NEWLINE ~ ANY)*} // COMMENT is special so we don't need to use it with expressions
+//expression = { opcode | COMMENT | opcode ~ COMMENT}
+file = {
+    SOI ~
+    ((opcode)? ~ NEWLINE)* ~
+    opcode? ~ // The upper rule only works with a trailing new line.
+    EOI
+}
+
+WHITESPACE = _{ " " | "\t" }
