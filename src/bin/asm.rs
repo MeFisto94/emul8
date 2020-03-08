@@ -32,7 +32,7 @@ pub struct CallLabel {
 }
 
 impl Opcode for JmpLabel {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         panic!("This Opcode is not meant to be executed and should be replaced by the assembler!");
     }
     fn modified_pc(&self) -> bool {
@@ -44,13 +44,13 @@ impl Opcode for JmpLabel {
 }
 
 impl std::fmt::Display for JmpLabel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         unreachable!()
     }
 }
 
 impl Opcode for  CallLabel {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         panic!("This Opcode is not meant to be executed and should be replaced by the assembler!");
     }
     fn assemble(&self) -> (u8, u8) {
@@ -59,7 +59,7 @@ impl Opcode for  CallLabel {
 }
 
 impl std::fmt::Display for CallLabel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         unreachable!()
     }
 }
@@ -314,7 +314,7 @@ fn main() {
         println!("Entering Linking Stage...")
     }
 
-    for (idx, op) in opcodes.iter_mut().enumerate() {
+    for (_idx, op) in opcodes.iter_mut().enumerate() {
         if op.is::<JmpLabel>() {
             let lbl = op.downcast_ref::<JmpLabel>().unwrap();
             if label_definitions.contains_key(&lbl.name) {
