@@ -64,13 +64,13 @@ fn main() {
     let stop_zero = !args.is_present("dont-stop-on-zerobytes");
 
     let mut processor = processor::Processor {
-        display: display::Display::new(),
-        memory: memory::Memory::new(),
-        keyboard: keyboard::Keyboard::new()
+        display: display::Display::default(),
+        memory: memory::Memory::default(),
+        keyboard: keyboard::Keyboard::default()
     };
 
     processor.memory.load_from_file(args.value_of("infile").unwrap(), lp)
-        .expect(&format!("Failed to load the input file {}", args.value_of("infile").unwrap()));
+        .unwrap_or_else(|_| panic!("Failed to load the input file {}", args.value_of("infile").unwrap()));
     processor.memory.registers.pc = ep;
 
     if !canonical {
@@ -81,17 +81,16 @@ fn main() {
     while processor.memory.registers.pc <= 4094 {
         let opcode = processor.fetch_opcode();
         let op: Box<dyn Opcode> = processor.decode_opcode(opcode);
-        //if opcode.0 != 0 || opcode.1 != 0 || verbosity == 2 
+        //if opcode.0 != 0 || opcode.1 != 0 || verbosity == 2
         if op.to_string() != "INVALID" {
             if !canonical {
                 println!("{:#X}\t\t\t{:#X} {:#X}\t{}", processor.memory.registers.pc, opcode.0, opcode.1, op);
             } else {
                 println!("{} ; {:#X}", op, processor.memory.registers.pc);
             }
-        } else {
-            if opcode.0 == 0 && opcode.1 == 0 {
+        } else if opcode.0 == 0 && opcode.1 == 0 {
                 if stop_zero {
-                    panic!("Stopping disassembly as the first 0x0000 data has been reached");
+                    panic!("Stopping disassembly as the first 0x00 0x00 data has been reached");
                 } else if verbosity == 2 {
                     if !canonical {
                         println!("{:#X}\t\t\t{:#X} {:#X}\t{}", processor.memory.registers.pc, opcode.0, opcode.1, op);
@@ -99,15 +98,13 @@ fn main() {
                         println!("{} ; {:#X}", op, processor.memory.registers.pc);
                     }
                 }
-            }
-            else if !ignore_errors {
-                panic!("Got an Invalid Opcode, probably reached the end of the file or a data sector.")
-            } else if verbosity == 2 {
-                if !canonical {
-                    println!("{:#X}\t\t\t{:#X} {:#X}\t{}", processor.memory.registers.pc, opcode.0, opcode.1, op);
-                } else {
-                    println!("{} ; {:#X}", op, processor.memory.registers.pc);
-                }
+        } else if !ignore_errors {
+            panic!("Got an Invalid Opcode, probably reached the end of the file or a data sector.")
+        } else if verbosity == 2 {
+            if !canonical {
+                println!("{:#X}\t\t\t{:#X} {:#X}\t{}", processor.memory.registers.pc, opcode.0, opcode.1, op);
+            } else {
+                println!("{} ; {:#X}", op, processor.memory.registers.pc);
             }
         }
 

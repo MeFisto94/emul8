@@ -53,13 +53,13 @@ fn main() {
     //let stop_zero = !args.is_present("dont-stop-on-zerobytes");
 
     let mut processor = processor::Processor {
-        memory: memory::Memory::new(),
-        keyboard: keyboard::Keyboard::new(),
-        display: display::Display::new()
+        memory: memory::Memory::default(),
+        keyboard: keyboard::Keyboard::default(),
+        display: display::Display::default()
     };
 
     processor.memory.load_from_file(args.value_of("infile").unwrap(), lp)
-        .expect(&format!("Failed to load the input file {}", args.value_of("infile").unwrap()));
+        .unwrap_or_else(|_| panic!("Failed to load the input file {}", args.value_of("infile").unwrap()));
     processor.memory.registers.pc = ep;
 
     if verbosity > 0 {
@@ -89,12 +89,12 @@ fn main() {
 
                     if cmd_line.starts_with("p ") {
                         let addr_s = cmd_line.trim_start_matches("p ").trim();
-                        let addr: u16;
-                        if addr_s.starts_with("0x") {
-                            addr = u16::from_str_radix(addr_s.trim_start_matches("0x"), 16).unwrap();
+
+                        let addr = if addr_s.starts_with("0x") {
+                            u16::from_str_radix(addr_s.trim_start_matches("0x"), 16).unwrap()
                         } else {
-                            addr = u16::from_str_radix(addr_s, 10).unwrap();
-                        }
+                            u16::from_str_radix(addr_s, 10).unwrap()
+                        };
                         
                         let opc = processor.memory.read_two_u8(addr);
                         let opd = processor.decode_opcode(opc);

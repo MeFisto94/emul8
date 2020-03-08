@@ -52,53 +52,50 @@ impl Processor {
 
         //println!("===> Decoded HIGH: selector={:#X}, value={:#X}", sel, val);
 
-        let op = match sel {
-            1 => return Box::new(JMP::new(val, opcode.1)),
-            2 => return Box::new(CALL::new(val, opcode.1)),
-            3 => return Box::new(SEVxByte{reg: val, byte: opcode.1}),
-            4 => return Box::new(SNEVxByte{reg: val, byte: opcode.1}),
-            5 => return Box::new(SEVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
-            6 => return Box::new(LDVxByte{reg: val, byte: opcode.1}),
-            7 => return Box::new(ADDVxByte{reg: val, byte: opcode.1}),
+        match sel {
+            1 => Box::new(JMP::new(val, opcode.1)),
+            2 => Box::new(CALL::new(val, opcode.1)),
+            3 => Box::new(SEVxByte{reg: val, byte: opcode.1}),
+            4 => Box::new(SNEVxByte{reg: val, byte: opcode.1}),
+            5 => Box::new(SEVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
+            6 => Box::new(LDVxByte{reg: val, byte: opcode.1}),
+            7 => Box::new(ADDVxByte{reg: val, byte: opcode.1}),
             8 => match opcode.1 & 0x0F {
-                0 => return Box::new(LDVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
-                1 => return Box::new(ORVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
-                2 => return Box::new(ANDVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
-                3 => return Box::new(XORVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
-                4 => return Box::new(ADDVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
-                5 => return Box::new(SUBVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
-                6 => return Box::new(SHRVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
-                7 => return Box::new(SUBNVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
-                0xE => return Box::new(SHLVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
+                0 => Box::new(LDVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
+                1 => Box::new(ORVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
+                2 => Box::new(ANDVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
+                3 => Box::new(XORVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
+                4 => Box::new(ADDVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
+                5 => Box::new(SUBVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
+                6 => Box::new(SHRVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
+                7 => Box::new(SUBNVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
+                0xE => Box::new(SHLVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
                 _ => Box::new(InvalidOpcode{opcode})
             },
-            9 => return Box::new(SNEVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
-            0xA => return Box::new(LDIAddr::new(val, opcode.1)),
-            0xB => return Box::new(JPV0Offset::new(val, opcode.1)),
-            0xC => return Box::new(RNDVxByte{reg: val, byte:opcode.1}),
-            0xD => return Box::new(DRW{reg_x: val, reg_y: ((opcode.1 & 0xF0) >> 4), size: (opcode.1 & 0xF)}),
+            9 => Box::new(SNEVxVy{reg_a: val, reg_b: ((opcode.1 & 0xF0) >> 4)}),
+            0xA => Box::new(LDIAddr::new(val, opcode.1)),
+            0xB => Box::new(JPV0Offset::new(val, opcode.1)),
+            0xC => Box::new(RNDVxByte{reg: val, byte:opcode.1}),
+            0xD => Box::new(DRW{reg_x: val, reg_y: ((opcode.1 & 0xF0) >> 4), size: (opcode.1 & 0xF)}),
             0xE => match opcode.1 {
-                0x9E => return Box::new(SKPKBRDVx{reg: val}),
-                0xA1 => return Box::new(SKNPBRDVx{reg: val}),
+                0x9E => Box::new(SKPKBRDVx{reg: val}),
+                0xA1 => Box::new(SKNPBRDVx{reg: val}),
                 _ => Box::new(InvalidOpcode{opcode})
             },
 
             0xF => match opcode.1 {
-                7 => return Box::new(LDVxDT{reg: val}),
-                0xA => return Box::new(LDVxK{reg: val}),
-                0x15 => return Box::new(LDDTVx{reg: val}),
-                0x18 => return Box::new(LDSTVx{reg: val}),
-                0x1E => return Box::new(ADDIVx{reg: val}),
-                0x29 => return Box::new(LDFVx{reg: val}),
-                0x33 => return Box::new(LDBVx{reg: val}),
-                0x55 => return Box::new(LDIVx{reg: val}),
-                0x65 => return Box::new(LDVxI{reg: val}),
+                7 => Box::new(LDVxDT{reg: val}),
+                0xA => Box::new(LDVxK{reg: val}),
+                0x15 => Box::new(LDDTVx{reg: val}),
+                0x18 => Box::new(LDSTVx{reg: val}),
+                0x1E => Box::new(ADDIVx{reg: val}),
+                0x29 => Box::new(LDFVx{reg: val}),
+                0x33 => Box::new(LDBVx{reg: val}),
+                0x55 => Box::new(LDIVx{reg: val}),
+                0x65 => Box::new(LDVxI{reg: val}),
                 _ => Box::new(InvalidOpcode{opcode})
             }
             _ => Box::new(InvalidOpcode{opcode})
-        };
-
-
-        op
+        }
     }
 }

@@ -4,11 +4,13 @@ pub struct Keyboard {
     pub keys: [bool; 16]
 }
 
-impl Keyboard {
-    pub fn new() -> Keyboard {
+impl Default for Keyboard {
+    fn default() -> Self {
         Keyboard {keys: [false; 16]}
     }
+}
 
+impl Keyboard {
     pub fn do_read(&mut self) {
 
     }

@@ -36,7 +36,7 @@ impl Opcode for JmpLabel {
         panic!("This Opcode is not meant to be executed and should be replaced by the assembler!");
     }
     fn modified_pc(&self) -> bool {
-        return false; // The majority does not tamper with the PC
+        false // The majority does not tamper with the PC
     }
     fn assemble(&self) -> (u8, u8) {
         panic!("This Opcode is not meant to be assembled and should be replaced by the assembler!");
@@ -71,12 +71,12 @@ fn parse_register(pair: pest::iterators::Pair<Rule>) -> u8 {
 
 fn parse_constant(pair: pest::iterators::Pair<Rule>) -> u8 {
     let addr_s = pair.as_span().as_str();
-    let addr: u16;
-    if addr_s.starts_with("0x") {
-        addr = u16::from_str_radix(addr_s.trim_start_matches("0x"), 16).unwrap();
+
+    let addr = if addr_s.starts_with("0x") {
+        u16::from_str_radix(addr_s.trim_start_matches("0x"), 16).unwrap()
     } else {
-        addr = u16::from_str_radix(addr_s, 10).unwrap();
-    }
+        u16::from_str_radix(addr_s, 10).unwrap()
+    };
     
     if addr > 0xFF {
         panic!("Syntax Error: Constant {} too large!", addr_s);
@@ -87,13 +87,13 @@ fn parse_constant(pair: pest::iterators::Pair<Rule>) -> u8 {
 
 fn parse_address(pair: pest::iterators::Pair<Rule>) -> u16 {
     let addr_s = pair.as_span().as_str();
-    let addr: u16;
-    if addr_s.starts_with("0x") {
-        addr = u16::from_str_radix(addr_s.trim_start_matches("0x"), 16).unwrap();
+
+    let addr = if addr_s.starts_with("0x") {
+        u16::from_str_radix(addr_s.trim_start_matches("0x"), 16).unwrap()
     } else {
-        addr = u16::from_str_radix(addr_s, 10).unwrap();
-    }
-    
+        u16::from_str_radix(addr_s, 10).unwrap()
+    };
+
     if addr > 0x1000 {
         panic!("Syntax Error: Address out of boundaries: {}", addr_s);
     }
@@ -132,13 +132,12 @@ fn main() {
     let verbosity = std::cmp::min(args.occurrences_of("verbosity"), 2);
 
     let offset = u16::from_str_radix(args.value_of("offset").unwrap().trim_start_matches("0x"), 16).expect("Unable to parse the offset value");
-    let outfilename: String;
 
-    if args.is_present("outfile") {
-        outfilename = args.value_of("outfile").unwrap().to_string();
+    let outfilename = if args.is_present("outfile") {
+        args.value_of("outfile").unwrap().to_string()
     } else {
-        outfilename = format!("{}{}", args.value_of("infile").unwrap().trim_end_matches(".as8"), ".obj");
-    }
+        format!("{}{}", args.value_of("infile").unwrap().trim_end_matches(".as8"), ".obj")
+    };
 
     if verbosity > 0 {
         println!("Assembling {} as {}, starting at offset {:#X}", args.value_of("infile").unwrap(), &outfilename, offset);
@@ -296,11 +295,9 @@ fn main() {
                     }
                 }
             };
-            
-            match opcode {
-                Some(op) => opcodes.push(op),
-                _ => ()
-            }
+
+            // If opcode is Some, push it to opcodes
+            if let Some(op) = opcode { opcodes.push(op) };
         }
     }
 
@@ -336,7 +333,7 @@ fn main() {
 
     let mut buf = BufWriter::new(outfile);
     opcodes.iter().map(|x| x.assemble()).for_each(move |x| {
-        buf.write(&[x.0]).expect("Error when writing to the object file!");
-        buf.write(&[x.1]).expect("Error when writing to the object file!");
+        buf.write_all(&[x.0]).expect("Error when writing to the object file!");
+        buf.write_all(&[x.1]).expect("Error when writing to the object file!");
     });
 }

@@ -27,23 +27,22 @@ pub struct Registers {
     pub v: [u8; 16]
 }
 
-impl Registers {
-    pub fn new() -> Registers {
+impl Default for Registers {
+    fn default() -> Self {
         Registers { pc: 0, sp: -1, i: 0, v: [0; 16], dt: 0, st: 0}
     }
 }
 
 impl fmt::Display for Registers {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Special Registers: pc={:#X}, sp={:#X}, i={:#X}, dt={:#X}, st={:#X}\n", self.pc, self.sp, self.i, self.dt, self.st)?;
-        write!(f, "General Purpose Registers\n")?;
-        write!(f, "V0 : {:#X},  V1: {:#X},  V2 : {:#X},  V3: {:#X}\n",     self.v[0],  self.v[1],  self.v[2],  self.v[3])?;
-        write!(f, "V4 : {:#X},  V5: {:#X},  V6 : {:#X},  V7: {:#X}\n",     self.v[4],  self.v[5],  self.v[6],  self.v[7])?;
-        write!(f, "V8 : {:#X},  V9: {:#X},  V10: {:#X}, V11: {:#X}\n",    self.v[8],  self.v[9],  self.v[10], self.v[11])?;
-        write!(f, "V12: {:#X}, V13: {:#X},  V14: {:#X}, V15: {:#X}\n",    self.v[12], self.v[13], self.v[14], self.v[15])
+        writeln!(f, "Special Registers: pc={:#X}, sp={:#X}, i={:#X}, dt={:#X}, st={:#X}", self.pc, self.sp, self.i, self.dt, self.st)?;
+        writeln!(f, "General Purpose Registers")?;
+        writeln!(f, "V0 : {:#X},  V1: {:#X},  V2 : {:#X},  V3: {:#X}",     self.v[0],  self.v[1],  self.v[2],  self.v[3])?;
+        writeln!(f, "V4 : {:#X},  V5: {:#X},  V6 : {:#X},  V7: {:#X}",     self.v[4],  self.v[5],  self.v[6],  self.v[7])?;
+        writeln!(f, "V8 : {:#X},  V9: {:#X},  V10: {:#X}, V11: {:#X}",    self.v[8],  self.v[9],  self.v[10], self.v[11])?;
+        writeln!(f, "V12: {:#X}, V13: {:#X},  V14: {:#X}, V15: {:#X}",    self.v[12], self.v[13], self.v[14], self.v[15])
     }
 }
-
 
 pub struct Memory {
     pub registers: Registers,
@@ -51,9 +50,9 @@ pub struct Memory {
     pub ram: [u8; 4096]
 }
 
-impl Memory {
-    pub fn new() -> Memory {
-        let mut mem = Memory { stack: [0; 16], registers: Registers::new(), ram: [0; 4096]};
+impl Default for Memory {
+    fn default() -> Self {
+        let mut mem = Memory { stack: [0; 16], registers: Registers::default(), ram: [0; 4096]};
 
         let digit_0 = [0xF0, 0x90, 0x90, 0x90, 0xF0];
         let digit_1 = [0x20, 0x60, 0x20, 0x20, 0x70];
@@ -73,9 +72,9 @@ impl Memory {
         let digit_f = [0xF0, 0x80, 0xF0, 0x80, 0x80];
 
         for i in 0..5 {
-            mem.ram[0 * 6 + i] = digit_0[i];
-            mem.ram[1 * 6 + i] = digit_1[i];
-            mem.ram[2 * 6 + i] = digit_2[i];            
+            mem.ram[        i] = digit_0[i];
+            mem.ram[    6 + i] = digit_1[i];
+            mem.ram[2 * 6 + i] = digit_2[i];
             mem.ram[3 * 6 + i] = digit_3[i];
             mem.ram[4 * 6 + i] = digit_4[i];
             mem.ram[5 * 6 + i] = digit_5[i];
@@ -90,10 +89,12 @@ impl Memory {
             mem.ram[0xE * 6 + i] = digit_e[i];
             mem.ram[0xF * 6 + i] = digit_f[i];
         }
-        
-        return mem;
-    }
 
+        mem
+    }
+}
+
+impl Memory {
     pub fn load_from_file(&mut self, name: &str, loading_point: u16) -> Result<(), io::Error> {
         if loading_point >= 4096 {
             panic!("Loading Point exceeds memory range [0, 4096]");
@@ -108,8 +109,9 @@ impl Memory {
 
         // Move buffer into ram at a given loading_point. There got to be a more rusty way for this,
         // but array.from_slice() does not support the offset of the loading_point
-        for i in 0..buffer.len() {
-            self.ram[loading_point as usize + i] = buffer[i];
+
+        for (i, buf) in buffer.iter().enumerate() {
+            self.ram[loading_point as usize + i] = *buf;
         }
 
         Ok(())

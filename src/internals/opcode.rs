@@ -6,10 +6,10 @@ use downcast_rs::Downcast;
 pub trait Opcode: fmt::Debug +  fmt::Display + Downcast {
     fn execute(&self, processor: &mut Processor);
     fn modified_pc(&self) -> bool {
-        return false; // The majority does not tamper with the PC
+        false // The majority does not tamper with the PC
     }
     fn assemble(&self) -> (u8, u8) {
-        return (0x0, 0x0); // To easier migrate, return an invalid OPCode
+        (0x0, 0x0) // To easier migrate, return an invalid OPCode
     }
 }
 impl_downcast!(Opcode);
@@ -123,7 +123,7 @@ impl Opcode for RET {
     }
 
     fn modified_pc(&self) -> bool {
-        return true;
+        true
     }
 }
 
@@ -161,7 +161,7 @@ impl Opcode for JMP {
     }
 
     fn modified_pc(&self) -> bool {
-        return true;
+        true
     }
 
     fn assemble(&self) -> (u8, u8) {
@@ -199,7 +199,7 @@ impl Opcode for CALL {
     }
 
     fn modified_pc(&self) -> bool {
-        return true;
+        true
     }
 }
 
@@ -334,7 +334,7 @@ impl Opcode for LDVxVy {
     }
 
     fn assemble(&self) -> (u8, u8) {
-        (8 << 4 | self.reg_a, self.reg_b << 4 | 0)
+        (8 << 4 | self.reg_a, self.reg_b << 4)
     }
 }
 
@@ -646,7 +646,7 @@ impl fmt::Display for LDIVx {
 impl Opcode for LDVxI {
     fn execute(&self, processor: &mut Processor) {
         let i = processor.memory.registers.i;
-        for x in 0..self.reg+1 {
+        for x in 0..=self.reg {
             //dbg!((i + x as u16) as usize);
             //dbg!(processor.memory.ram[(i + x as u16) as usize]);
             processor.memory.registers.v[x as usize] = processor.memory.ram[(i + x as u16) as usize];
@@ -698,7 +698,7 @@ impl DRW {
             }
         }
 
-        return vec;
+        vec
     }
 }
 

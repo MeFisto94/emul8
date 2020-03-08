@@ -5,11 +5,8 @@ extern crate pest;
 extern crate pest_derive;
 
 use pest::Parser;
-use emul8::internals::opcode::*;
-use emul8::internals::opcode::Opcode;
 use clap::{Arg, App};
 use std::fs::{File, OpenOptions};
-use std::io::{BufWriter, Write};
 
 #[derive(Parser)]
 #[grammar = "grammar/asm.pest"]

@@ -2,8 +2,8 @@ pub struct Display {
     pub screen: [bool; 64*32]
 }
 
-impl Display {
-    pub fn new() -> Display {
+impl Default for Display {
+    fn default() -> Self {
         Display {screen: [false; 64*32]}
     }
 }
@@ -21,7 +21,7 @@ impl std::fmt::Display for Display {
                 if x != 63 {
                     write!(f, " ")?;
                 } else {
-                    write!(f, "\n")?;
+                    writeln!(f)?;
                 }   
             }
         }
