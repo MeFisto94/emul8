@@ -77,7 +77,7 @@ fn main() {
             
             if paused {
                 let opcode = processor.fetch_opcode();
-                let op: Box<Opcode> = processor.decode_opcode(opcode);
+                let op: Box<dyn Opcode> = processor.decode_opcode(opcode);
                 if verbosity > 0 {
                     println!("<Memory Address>\t<Opcodes>\t<Assembler>");
                 }

@@ -166,7 +166,7 @@ fn main() {
                 "RET" => Some(Box::new(RET{})),
                 _ => {
                     let opcode_str = pair.as_span().as_str();
-                    let mut opcode_node = &mut pair.into_inner();
+                    let opcode_node = &mut pair.into_inner();
                     let operator = opcode_node.next().unwrap();
                     match operator.as_rule() {
                         Rule::ld_operator => {

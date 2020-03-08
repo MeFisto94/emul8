@@ -35,11 +35,11 @@ impl Registers {
 
 impl fmt::Display for Registers {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Special Registers: pc={:#X}, sp={:#X}, i={:#X}, dt={:#X}, st={:#X}\n", self.pc, self.sp, self.i, self.dt, self.st);
-        write!(f, "General Purpose Registers\n");
-        write!(f, "V0 : {:#X},  V1: {:#X},  V2 : {:#X},  V3: {:#X}\n",     self.v[0],  self.v[1],  self.v[2],  self.v[3]);
-        write!(f, "V4 : {:#X},  V5: {:#X},  V6 : {:#X},  V7: {:#X}\n",     self.v[4],  self.v[5],  self.v[6],  self.v[7]);
-        write!(f, "V8 : {:#X},  V9: {:#X},  V10: {:#X}, V11: {:#X}\n",    self.v[8],  self.v[9],  self.v[10], self.v[11]);
+        write!(f, "Special Registers: pc={:#X}, sp={:#X}, i={:#X}, dt={:#X}, st={:#X}\n", self.pc, self.sp, self.i, self.dt, self.st)?;
+        write!(f, "General Purpose Registers\n")?;
+        write!(f, "V0 : {:#X},  V1: {:#X},  V2 : {:#X},  V3: {:#X}\n",     self.v[0],  self.v[1],  self.v[2],  self.v[3])?;
+        write!(f, "V4 : {:#X},  V5: {:#X},  V6 : {:#X},  V7: {:#X}\n",     self.v[4],  self.v[5],  self.v[6],  self.v[7])?;
+        write!(f, "V8 : {:#X},  V9: {:#X},  V10: {:#X}, V11: {:#X}\n",    self.v[8],  self.v[9],  self.v[10], self.v[11])?;
         write!(f, "V12: {:#X}, V13: {:#X},  V14: {:#X}, V15: {:#X}\n",    self.v[12], self.v[13], self.v[14], self.v[15])
     }
 }

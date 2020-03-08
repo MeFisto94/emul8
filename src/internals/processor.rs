@@ -12,7 +12,7 @@ pub struct Processor {
 impl Processor {
     pub fn tick(&mut self) {
         let opcode = self.fetch_opcode();
-        let op: Box<Opcode> = self.decode_opcode(opcode);
+        let op: Box<dyn Opcode> = self.decode_opcode(opcode);
         if !op.modified_pc() {
             self.memory.registers.pc += 2;
         }
@@ -22,7 +22,7 @@ impl Processor {
     pub fn disassemble_tick(&mut self) {
         let opcode = self.fetch_opcode();
         self.memory.registers.pc += 2;
-        let op: Box<Opcode> = self.decode_opcode(opcode);
+        let op: Box<dyn Opcode> = self.decode_opcode(opcode);
         if opcode.0 != 0 || opcode.1 != 0 {
             dbg!(op);
         } else {
@@ -35,14 +35,14 @@ impl Processor {
         self.memory.read_two_u8(self.memory.registers.pc)
     }
 
-    pub fn decode_opcode(&mut self, opcode: (u8, u8)) -> Box<Opcode> {
+    pub fn decode_opcode(&mut self, opcode: (u8, u8)) -> Box<dyn Opcode> {
         //println!("=> Decoding {:#X} {:#X}", opcode.0, opcode.1);
 
         // Simple Opcodes which don't require bit shifting.
-        let op: Box<Opcode> = match opcode {
+        match opcode {
             (0x0, 0xE0) => return Box::new(CLS{}),
             (0x0, 0xEE) => return Box::new(RET{}),
-            _ => Box::new(InvalidOpcode{opcode})
+            _ => ()
         };
 
         // selector, the 4 highest bits

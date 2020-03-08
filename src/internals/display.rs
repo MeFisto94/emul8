@@ -1,5 +1,3 @@
-use std::io::{stdin, stdout, Write};
-
 pub struct Display {
     pub screen: [bool; 64*32]
 }

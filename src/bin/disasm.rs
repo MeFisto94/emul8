@@ -80,7 +80,7 @@ fn main() {
     
     while processor.memory.registers.pc <= 4094 {
         let opcode = processor.fetch_opcode();
-        let op: Box<Opcode> = processor.decode_opcode(opcode);
+        let op: Box<dyn Opcode> = processor.decode_opcode(opcode);
         //if opcode.0 != 0 || opcode.1 != 0 || verbosity == 2 
         if op.to_string() != "INVALID" {
             if !canonical {

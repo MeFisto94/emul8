@@ -1,4 +1,4 @@
-use std::io::{stdin, stdout, Write};
+use std::io::stdin;
 
 pub struct Keyboard {
     pub keys: [bool; 16]

@@ -134,7 +134,7 @@ impl fmt::Display for RET {
 }
 
 impl Opcode for InvalidOpcode {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         panic!("Unknown Opcode: {:#X} {:#X}", self.opcode.0, self.opcode.1)
     }
 }
@@ -232,7 +232,9 @@ impl JPV0Offset {
 }
 
 impl Opcode for JPV0Offset {
-    fn execute(&self, processor: &mut Processor) {}
+    fn execute(&self, _processor: &mut Processor) {
+        unimplemented!()
+    }
 }
 
 impl fmt::Display for JPV0Offset {
@@ -279,7 +281,7 @@ impl fmt::Display for SNEVxByte {
 
 //@TODO: Implement and fix
 impl Opcode for SEVxVy {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         unimplemented!();
     }
 
@@ -327,7 +329,7 @@ impl fmt::Display for ADDVxByte {
 }
 
 impl Opcode for LDVxVy {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         unimplemented!();
     }
 
@@ -343,7 +345,7 @@ impl fmt::Display for LDVxVy {
 }
 
 impl Opcode for ORVxVy {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         unimplemented!();
     }
 
@@ -359,7 +361,7 @@ impl fmt::Display for ORVxVy {
 }
 
 impl Opcode for ANDVxVy {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         unimplemented!();
     }
 
@@ -375,7 +377,7 @@ impl fmt::Display for ANDVxVy {
 }
 
 impl Opcode for XORVxVy {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         unimplemented!();
     }
 
@@ -437,7 +439,7 @@ impl fmt::Display for SUBVxVy {
 }
 
 impl Opcode for SHRVxVy {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         unimplemented!();
     }
 
@@ -453,7 +455,7 @@ impl fmt::Display for SHRVxVy {
 }
 
 impl Opcode for SUBNVxVy {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         unimplemented!();
     }
 
@@ -469,7 +471,7 @@ impl fmt::Display for SUBNVxVy {
 }
 
 impl Opcode for SHLVxVy {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         unimplemented!();
     }
 
@@ -485,7 +487,7 @@ impl fmt::Display for SHLVxVy {
 }
 
 impl Opcode for SNEVxVy {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         unimplemented!();
     }
 }
@@ -548,7 +550,7 @@ impl fmt::Display for LDVxK {
 }
 
 impl Opcode for LDSTVx {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         unimplemented!()
     }
 
@@ -582,7 +584,7 @@ impl fmt::Display for ADDIVx {
 impl Opcode for LDFVx {
     fn execute(&self, processor: &mut Processor) {
         let vx = processor.memory.registers.v[self.reg as usize];
-        if (vx > 0xF) {
+        if vx > 0xF {
             panic!("Invalid Opcode: Value in Register V{} exceeds 0xF.", self.reg);
         }
 
@@ -604,10 +606,10 @@ impl Opcode for LDBVx {
     fn execute(&self, processor: &mut Processor) {
         //@TODO: Validate since this has nothing to do with real BCD here.
         // Store BCD representation of Vx in I, I+1 and I+2 (100s, 10s, 1s)
-        let Vx = processor.memory.registers.v[self.reg as usize];
-        let hundreds:u8 = Vx / 100;
-        let tens:u8 = (Vx - hundreds)/10;
-        let ones:u8 = Vx - hundreds - tens;
+        let vx = processor.memory.registers.v[self.reg as usize];
+        let hundreds:u8 = vx / 100;
+        let tens:u8 = (vx - hundreds)/10;
+        let ones:u8 = vx - hundreds - tens;
         let i = processor.memory.registers.i;
         processor.memory.ram[i as usize] = hundreds;
         processor.memory.ram[(i + 1) as usize] = tens;
@@ -626,7 +628,7 @@ impl fmt::Display for LDBVx {
 }
 
 impl Opcode for LDIVx {
-    fn execute(&self, processor: &mut Processor) {
+    fn execute(&self, _processor: &mut Processor) {
         unimplemented!()
     }
 
@@ -665,7 +667,7 @@ impl fmt::Display for LDVxI {
 }
 
 impl Opcode for SKPKBRDVx {
-    fn execute(&self, processor: &mut Processor) {}
+    fn execute(&self, _processor: &mut Processor) {}
 }
 
 impl fmt::Display for SKPKBRDVx {
@@ -675,7 +677,7 @@ impl fmt::Display for SKPKBRDVx {
 }
 
 impl Opcode for SKNPBRDVx {
-    fn execute(&self, processor: &mut Processor) {}
+    fn execute(&self, _processor: &mut Processor) {}
 }
 
 impl fmt::Display for SKNPBRDVx {
@@ -688,7 +690,6 @@ impl DRW {
     fn ld_sprite(&self, processor: &mut Processor) -> Vec<bool> {
         let i = processor.memory.registers.i as usize;
         let mut vec: Vec<bool> = Vec::new();
-        let bools: &[bool] = &[];
 
         for byte in &processor.memory.ram[i.. i + self.size as usize] {
             for x in 0..8 {
@@ -707,7 +708,6 @@ impl Opcode for DRW {
         let vx = processor.memory.registers.v[self.reg_x as usize] as u16;
         let vy = processor.memory.registers.v[self.reg_y as usize] as u16;
         let vec_sprite = self.ld_sprite(processor);
-        let sprite = vec_sprite.as_slice();
 
         for y in 0..self.size {
             for x in 0..8 {
