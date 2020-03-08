@@ -1,3 +1,14 @@
 /target
 **/*.rs.bk
 games/**
+
+.vscode
+
+# CHIP-8 Object Files
+*.obj
+
+# CHIP-8 Binary Files
+*.ch8
+
+# CHIP-8 Assembler Files
+*.as8
