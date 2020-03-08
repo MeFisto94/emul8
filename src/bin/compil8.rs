@@ -1,11 +1,11 @@
-extern crate emul8;
 extern crate clap;
+extern crate emul8;
 extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
+use clap::{App, Arg};
 use pest::Parser;
-use clap::{Arg, App};
 use std::fs::{File, OpenOptions};
 
 #[derive(Parser)]
@@ -42,26 +42,45 @@ fn main() {
 
     let verbosity = std::cmp::min(args.occurrences_of("verbosity"), 2);
 
-    let offset = u16::from_str_radix(args.value_of("offset").unwrap().trim_start_matches("0x"), 16).expect("Unable to parse the offset value");
+    let offset = u16::from_str_radix(
+        args.value_of("offset").unwrap().trim_start_matches("0x"),
+        16,
+    )
+    .expect("Unable to parse the offset value");
     let outfilename: String;
 
     if args.is_present("outfile") {
         outfilename = args.value_of("outfile").unwrap().to_string();
     } else {
-        outfilename = format!("{}{}", args.value_of("infile").unwrap().trim_end_matches(".c"), ".obj");
+        outfilename = format!(
+            "{}{}",
+            args.value_of("infile").unwrap().trim_end_matches(".c"),
+            ".obj"
+        );
     }
- 
+
     /* Messy code, is there a more simple solution? */
     let outfile = match File::open(&outfilename) {
         Err(_e) => File::create(&outfilename).unwrap(),
-        Ok(_f) => if args.is_present("overwrite")  { OpenOptions::new().write(true).open(&outfilename).unwrap() } else { panic!("Won't overwrite the output file!")},
+        Ok(_f) => {
+            if args.is_present("overwrite") {
+                OpenOptions::new().write(true).open(&outfilename).unwrap()
+            } else {
+                panic!("Won't overwrite the output file!")
+            }
+        }
     };
 
     unimplemented!();
 
     // into_inner to not have file as Rule but all the expressions
-    let contents = std::fs::read_to_string(args.value_of("infile").unwrap()).expect("Cannot read input file");
-    let parse_file = ASMParser::parse(Rule::file, &contents).expect("Parser Error").next().unwrap().into_inner();
+    let contents =
+        std::fs::read_to_string(args.value_of("infile").unwrap()).expect("Cannot read input file");
+    let parse_file = ASMParser::parse(Rule::file, &contents)
+        .expect("Parser Error")
+        .next()
+        .unwrap()
+        .into_inner();
     //dbg!(parseFile);
 
     // see asm.rs for reference

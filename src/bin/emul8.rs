@@ -1,9 +1,9 @@
-extern crate emul8;
 extern crate clap;
-use emul8::internals::*;
+extern crate emul8;
+use clap::{App, Arg};
 use emul8::internals::opcode::Opcode;
-use clap::{Arg, App};
-use std::io::{stdin};
+use emul8::internals::*;
+use std::io::stdin;
 
 fn main() {
     let args = App::new("CHIP-8 Emulator")
@@ -47,23 +47,47 @@ fn main() {
     let verbosity = std::cmp::min(args.occurrences_of("verbosity"), 2);
     //let canonical = args.is_present("canonical");
 
-    let ep = u16::from_str_radix(args.value_of("entrypoint").unwrap().trim_start_matches("0x"), 16).expect("Unable to parse the entrypoint value");
-    let lp = u16::from_str_radix(args.value_of("loadingpoint").unwrap().trim_start_matches("0x"), 16).expect("Unable to parse the loadingpoint value");
+    let ep = u16::from_str_radix(
+        args.value_of("entrypoint")
+            .unwrap()
+            .trim_start_matches("0x"),
+        16,
+    )
+    .expect("Unable to parse the entrypoint value");
+    let lp = u16::from_str_radix(
+        args.value_of("loadingpoint")
+            .unwrap()
+            .trim_start_matches("0x"),
+        16,
+    )
+    .expect("Unable to parse the loadingpoint value");
     //let ignore_errors = !args.is_present("dont-ignore-errors");
     //let stop_zero = !args.is_present("dont-stop-on-zerobytes");
 
     let mut processor = processor::Processor {
         memory: memory::Memory::default(),
         keyboard: keyboard::Keyboard::default(),
-        display: display::Display::default()
+        display: display::Display::default(),
     };
 
-    processor.memory.load_from_file(args.value_of("infile").unwrap(), lp)
-        .unwrap_or_else(|_| panic!("Failed to load the input file {}", args.value_of("infile").unwrap()));
+    processor
+        .memory
+        .load_from_file(args.value_of("infile").unwrap(), lp)
+        .unwrap_or_else(|_| {
+            panic!(
+                "Failed to load the input file {}",
+                args.value_of("infile").unwrap()
+            )
+        });
     processor.memory.registers.pc = ep;
 
     if verbosity > 0 {
-        println!("Emulating file {} starting at {:#X}, loaded at {:#X}", args.value_of("infile").unwrap(), ep, lp);
+        println!(
+            "Emulating file {} starting at {:#X}, loaded at {:#X}",
+            args.value_of("infile").unwrap(),
+            ep,
+            lp
+        );
     }
 
     // @TODO: breakpoints!!!
@@ -74,18 +98,23 @@ fn main() {
             if processor.memory.registers.pc > 4094 {
                 panic!("Exceeded Memory at pc={:#X}", processor.memory.registers.pc);
             }
-            
+
             if paused {
                 let opcode = processor.fetch_opcode();
                 let op: Box<dyn Opcode> = processor.decode_opcode(opcode);
                 if verbosity > 0 {
                     println!("<Memory Address>\t<Opcodes>\t<Assembler>");
                 }
-                println!("{:#X}\t\t\t{:#X} {:#X}\t{}", processor.memory.registers.pc, opcode.0, opcode.1, op);
+                println!(
+                    "{:#X}\t\t\t{:#X} {:#X}\t{}",
+                    processor.memory.registers.pc, opcode.0, opcode.1, op
+                );
 
                 loop {
                     let mut cmd_line = String::new();
-                    stdin().read_line(&mut cmd_line).expect("Error when reading input");
+                    stdin()
+                        .read_line(&mut cmd_line)
+                        .expect("Error when reading input");
 
                     if cmd_line.starts_with("p ") {
                         let addr_s = cmd_line.trim_start_matches("p ").trim();
@@ -95,7 +124,7 @@ fn main() {
                         } else {
                             u16::from_str_radix(addr_s, 10).unwrap()
                         };
-                        
+
                         let opc = processor.memory.read_two_u8(addr);
                         let opd = processor.decode_opcode(opc);
 
@@ -111,7 +140,7 @@ fn main() {
                                     processor.memory.registers.pc += 2;
                                 }
                                 break;
-                            },
+                            }
                             "q" => return,
                             "r" => println!("{}", processor.memory.registers),
                             "st" => println!("{:x?}", processor.memory.stack),
@@ -120,10 +149,15 @@ fn main() {
                                 if verbosity > 0 {
                                     println!("<Memory Address>\t<Opcodes>\t<Assembler>");
                                 }
-                                println!("{:#X}\t\t\t{:#X} {:#X}\t{}", processor.memory.registers.pc, opcode.0, opcode.1, op);
-                            },
+                                println!(
+                                    "{:#X}\t\t\t{:#X} {:#X}\t{}",
+                                    processor.memory.registers.pc, opcode.0, opcode.1, op
+                                );
+                            }
                             "c" => {
-                                println!("Continueing execution. Will only stop at a breakpoint again!");
+                                println!(
+                                    "Continueing execution. Will only stop at a breakpoint again!"
+                                );
                                 paused = false;
                                 break;
                             }
@@ -138,10 +172,10 @@ fn main() {
     } else {
         unimplemented!()
     }
-    
+
     /*while processor.memory.registers.pc <= 4094 {
-        
-        //if opcode.0 != 0 || opcode.1 != 0 || verbosity == 2 
+
+        //if opcode.0 != 0 || opcode.1 != 0 || verbosity == 2
         if op.to_string() != "INVALID" {
             if !canonical {
                 println!("{:#X}\t\t\t{:#X} {:#X}\t{}", processor.memory.registers.pc, opcode.0, opcode.1, op);

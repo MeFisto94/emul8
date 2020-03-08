@@ -1,9 +1,9 @@
 use crate::internals::processor::Processor;
+use downcast_rs::Downcast;
 use rand::Rng;
 use std::fmt;
-use downcast_rs::Downcast;
 
-pub trait Opcode: fmt::Debug +  fmt::Display + Downcast {
+pub trait Opcode: fmt::Debug + fmt::Display + Downcast {
     fn execute(&self, processor: &mut Processor);
     fn modified_pc(&self) -> bool {
         false // The majority does not tamper with the PC
@@ -15,87 +15,171 @@ pub trait Opcode: fmt::Debug +  fmt::Display + Downcast {
 impl_downcast!(Opcode);
 
 #[derive(Debug)]
-pub struct InvalidOpcode{pub opcode: (u8, u8)}
+pub struct InvalidOpcode {
+    pub opcode: (u8, u8),
+}
 #[derive(Debug)]
 pub struct CLS {}
 #[derive(Debug)]
 pub struct RET {}
 
 #[derive(Debug)]
-pub struct JMP { pub address: u16}
+pub struct JMP {
+    pub address: u16,
+}
 #[derive(Debug)]
-pub struct CALL { pub address: u16}
+pub struct CALL {
+    pub address: u16,
+}
 #[derive(Debug)]
-pub struct SEVxByte{ pub reg: u8, pub byte: u8}
+pub struct SEVxByte {
+    pub reg: u8,
+    pub byte: u8,
+}
 #[derive(Debug)]
-pub struct SNEVxByte{ pub reg: u8, pub byte: u8}
+pub struct SNEVxByte {
+    pub reg: u8,
+    pub byte: u8,
+}
 #[derive(Debug)]
-pub struct SEVxVy{ pub reg_a: u8, pub reg_b: u8}
+pub struct SEVxVy {
+    pub reg_a: u8,
+    pub reg_b: u8,
+}
 #[derive(Debug)]
-pub struct SNEVxVy {pub reg_a: u8, pub reg_b: u8}
+pub struct SNEVxVy {
+    pub reg_a: u8,
+    pub reg_b: u8,
+}
 #[derive(Debug)]
-pub struct LDVxByte{ pub reg: u8, pub byte: u8}
+pub struct LDVxByte {
+    pub reg: u8,
+    pub byte: u8,
+}
 #[derive(Debug)]
-pub struct ADDVxByte{ pub reg: u8, pub byte: u8}
+pub struct ADDVxByte {
+    pub reg: u8,
+    pub byte: u8,
+}
 
 #[derive(Debug)]
-pub struct LDVxVy {pub reg_a: u8, pub reg_b: u8}
+pub struct LDVxVy {
+    pub reg_a: u8,
+    pub reg_b: u8,
+}
 #[derive(Debug)]
-pub struct ORVxVy {pub reg_a: u8, pub reg_b: u8}
+pub struct ORVxVy {
+    pub reg_a: u8,
+    pub reg_b: u8,
+}
 #[derive(Debug)]
-pub struct ANDVxVy {pub reg_a: u8, pub reg_b: u8}
+pub struct ANDVxVy {
+    pub reg_a: u8,
+    pub reg_b: u8,
+}
 #[derive(Debug)]
-pub struct XORVxVy {pub reg_a: u8, pub reg_b: u8}
+pub struct XORVxVy {
+    pub reg_a: u8,
+    pub reg_b: u8,
+}
 #[derive(Debug)]
-pub struct ADDVxVy {pub reg_a: u8, pub reg_b: u8}
+pub struct ADDVxVy {
+    pub reg_a: u8,
+    pub reg_b: u8,
+}
 #[derive(Debug)]
-pub struct SUBVxVy {pub reg_a: u8, pub reg_b: u8}
+pub struct SUBVxVy {
+    pub reg_a: u8,
+    pub reg_b: u8,
+}
 #[derive(Debug)]
-pub struct SHRVxVy {pub reg_a: u8, pub reg_b: u8}
+pub struct SHRVxVy {
+    pub reg_a: u8,
+    pub reg_b: u8,
+}
 #[derive(Debug)]
-pub struct SUBNVxVy {pub reg_a: u8, pub reg_b: u8}
+pub struct SUBNVxVy {
+    pub reg_a: u8,
+    pub reg_b: u8,
+}
 #[derive(Debug)]
-pub struct SHLVxVy {pub reg_a: u8, pub reg_b: u8}
+pub struct SHLVxVy {
+    pub reg_a: u8,
+    pub reg_b: u8,
+}
 
 #[derive(Debug)]
-pub struct LDVxDT {pub reg: u8}
+pub struct LDVxDT {
+    pub reg: u8,
+}
 #[derive(Debug)]
-pub struct LDVxK {pub reg: u8}
+pub struct LDVxK {
+    pub reg: u8,
+}
 #[derive(Debug)]
-pub struct LDDTVx {pub reg: u8}
+pub struct LDDTVx {
+    pub reg: u8,
+}
 #[derive(Debug)]
-pub struct LDSTVx {pub reg: u8}
+pub struct LDSTVx {
+    pub reg: u8,
+}
 #[derive(Debug)]
-pub struct ADDIVx {pub reg: u8}
+pub struct ADDIVx {
+    pub reg: u8,
+}
 #[derive(Debug)]
-pub struct LDFVx {pub reg: u8}
+pub struct LDFVx {
+    pub reg: u8,
+}
 #[derive(Debug)]
-pub struct LDBVx {pub reg: u8}
+pub struct LDBVx {
+    pub reg: u8,
+}
 #[derive(Debug)]
-pub struct LDIVx {pub reg: u8}
+pub struct LDIVx {
+    pub reg: u8,
+}
 #[derive(Debug)]
-pub struct LDVxI {pub reg: u8}
+pub struct LDVxI {
+    pub reg: u8,
+}
 
 #[derive(Debug)]
-pub struct SKPKBRDVx {pub reg: u8}
+pub struct SKPKBRDVx {
+    pub reg: u8,
+}
 #[derive(Debug)]
-pub struct SKNPBRDVx {pub reg: u8}
+pub struct SKNPBRDVx {
+    pub reg: u8,
+}
 
 #[derive(Debug)]
-pub struct DRW {pub reg_x: u8, pub reg_y: u8, pub size: u8}
+pub struct DRW {
+    pub reg_x: u8,
+    pub reg_y: u8,
+    pub size: u8,
+}
 
 #[derive(Debug)]
-pub struct RNDVxByte{ pub reg: u8, pub byte: u8}
+pub struct RNDVxByte {
+    pub reg: u8,
+    pub byte: u8,
+}
 
 #[derive(Debug)]
-pub struct LDIAddr{ pub address: u16}
+pub struct LDIAddr {
+    pub address: u16,
+}
 
 #[derive(Debug)]
-pub struct JPV0Offset{ pub address: u16}
+pub struct JPV0Offset {
+    pub address: u16,
+}
 
 impl Opcode for CLS {
     fn execute(&self, processor: &mut Processor) {
-        for i in 0..64*32 {
+        for i in 0..64 * 32 {
             processor.display.screen[i] = false;
         }
     }
@@ -114,7 +198,10 @@ impl fmt::Display for CLS {
 impl Opcode for RET {
     fn execute(&self, processor: &mut Processor) {
         let pop = processor.memory.stack_pop();
-        println!("Returning from {:#X} to {:#X}", processor.memory.registers.pc, pop);
+        println!(
+            "Returning from {:#X} to {:#X}",
+            processor.memory.registers.pc, pop
+        );
         processor.memory.registers.pc = pop;
     }
 
@@ -147,7 +234,9 @@ impl fmt::Display for InvalidOpcode {
 
 impl JMP {
     pub fn new(val: u8, low: u8) -> JMP {
-        JMP { address: (((val as u16) << 8) | low as u16)}
+        JMP {
+            address: (((val as u16) << 8) | low as u16),
+        }
     }
 }
 
@@ -165,7 +254,10 @@ impl Opcode for JMP {
     }
 
     fn assemble(&self) -> (u8, u8) {
-        ((1 << 4 | (self.address & 0xF00) >> 8) as u8, (self.address & 0xFF) as u8)
+        (
+            (1 << 4 | (self.address & 0xF00) >> 8) as u8,
+            (self.address & 0xFF) as u8,
+        )
     }
 }
 
@@ -177,7 +269,9 @@ impl fmt::Display for JMP {
 
 impl CALL {
     pub fn new(val: u8, low: u8) -> CALL {
-        CALL { address: (((val as u16) << 8) | low as u16)}
+        CALL {
+            address: (((val as u16) << 8) | low as u16),
+        }
     }
 }
 
@@ -190,12 +284,17 @@ impl fmt::Display for CALL {
 impl Opcode for CALL {
     fn execute(&self, processor: &mut Processor) {
         //println!("Calling {:#X}", self.address);
-        processor.memory.stack_push(processor.memory.registers.pc + 2);
+        processor
+            .memory
+            .stack_push(processor.memory.registers.pc + 2);
         processor.memory.registers.pc = self.address;
     }
 
     fn assemble(&self) -> (u8, u8) {
-        ((2 << 4 | (self.address & 0xF00) >> 8) as u8, (self.address & 0xFF) as u8)
+        (
+            (2 << 4 | (self.address & 0xF00) >> 8) as u8,
+            (self.address & 0xFF) as u8,
+        )
     }
 
     fn modified_pc(&self) -> bool {
@@ -205,7 +304,9 @@ impl Opcode for CALL {
 
 impl LDIAddr {
     pub fn new(val: u8, low: u8) -> LDIAddr {
-        LDIAddr { address: (((val as u16) << 8) | low as u16)}
+        LDIAddr {
+            address: (((val as u16) << 8) | low as u16),
+        }
     }
 }
 
@@ -215,7 +316,10 @@ impl Opcode for LDIAddr {
     }
 
     fn assemble(&self) -> (u8, u8) {
-        ((0xA << 4 | (self.address & 0xF00) >> 8) as u8, (self.address & 0xFF) as u8)
+        (
+            (0xA << 4 | (self.address & 0xF00) >> 8) as u8,
+            (self.address & 0xFF) as u8,
+        )
     }
 }
 
@@ -227,7 +331,9 @@ impl fmt::Display for LDIAddr {
 
 impl JPV0Offset {
     pub fn new(val: u8, low: u8) -> JPV0Offset {
-        JPV0Offset { address: (((val as u16) << 8) | low as u16)}
+        JPV0Offset {
+            address: (((val as u16) << 8) | low as u16),
+        }
     }
 }
 
@@ -241,7 +347,7 @@ impl fmt::Display for JPV0Offset {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "JPV0Offset {:#X}", self.address)
     }
-}           
+}
 
 impl Opcode for SEVxByte {
     fn execute(&self, processor: &mut Processor) {
@@ -351,7 +457,7 @@ impl Opcode for ORVxVy {
 
     fn assemble(&self) -> (u8, u8) {
         (8 << 4 | self.reg_a, self.reg_b << 4 | 1)
-    }    
+    }
 }
 
 impl fmt::Display for ORVxVy {
@@ -367,7 +473,7 @@ impl Opcode for ANDVxVy {
 
     fn assemble(&self) -> (u8, u8) {
         (8 << 4 | self.reg_a, self.reg_b << 4 | 2)
-    }    
+    }
 }
 
 impl fmt::Display for ANDVxVy {
@@ -394,7 +500,8 @@ impl fmt::Display for XORVxVy {
 
 impl Opcode for ADDVxVy {
     fn execute(&self, processor: &mut Processor) {
-        let res:u16 = processor.memory.registers.v[self.reg_a as usize] as u16 + processor.memory.registers.v[self.reg_b as usize] as u16;
+        let res: u16 = processor.memory.registers.v[self.reg_a as usize] as u16
+            + processor.memory.registers.v[self.reg_b as usize] as u16;
         if res > 255 {
             processor.memory.registers.v[0xF as usize] = 1;
         } else {
@@ -417,7 +524,8 @@ impl fmt::Display for ADDVxVy {
 
 impl Opcode for SUBVxVy {
     fn execute(&self, processor: &mut Processor) {
-        let res:i16 = processor.memory.registers.v[self.reg_a as usize] as i16 - processor.memory.registers.v[self.reg_b as usize] as i16;
+        let res: i16 = processor.memory.registers.v[self.reg_a as usize] as i16
+            - processor.memory.registers.v[self.reg_b as usize] as i16;
         if res < 0 {
             processor.memory.registers.v[0xF as usize] = 1;
         } else {
@@ -532,7 +640,6 @@ impl fmt::Display for LDDTVx {
     }
 }
 
-
 impl Opcode for LDVxK {
     fn execute(&self, processor: &mut Processor) {
         processor.memory.registers.v[self.reg as usize] = processor.keyboard.blocking_read();
@@ -585,7 +692,10 @@ impl Opcode for LDFVx {
     fn execute(&self, processor: &mut Processor) {
         let vx = processor.memory.registers.v[self.reg as usize];
         if vx > 0xF {
-            panic!("Invalid Opcode: Value in Register V{} exceeds 0xF.", self.reg);
+            panic!(
+                "Invalid Opcode: Value in Register V{} exceeds 0xF.",
+                self.reg
+            );
         }
 
         processor.memory.registers.i = (6 * vx) as u16;
@@ -607,9 +717,9 @@ impl Opcode for LDBVx {
         //@TODO: Validate since this has nothing to do with real BCD here.
         // Store BCD representation of Vx in I, I+1 and I+2 (100s, 10s, 1s)
         let vx = processor.memory.registers.v[self.reg as usize];
-        let hundreds:u8 = vx / 100;
-        let tens:u8 = (vx - hundreds)/10;
-        let ones:u8 = vx - hundreds - tens;
+        let hundreds: u8 = vx / 100;
+        let tens: u8 = (vx - hundreds) / 10;
+        let ones: u8 = vx - hundreds - tens;
         let i = processor.memory.registers.i;
         processor.memory.ram[i as usize] = hundreds;
         processor.memory.ram[(i + 1) as usize] = tens;
@@ -649,7 +759,8 @@ impl Opcode for LDVxI {
         for x in 0..=self.reg {
             //dbg!((i + x as u16) as usize);
             //dbg!(processor.memory.ram[(i + x as u16) as usize]);
-            processor.memory.registers.v[x as usize] = processor.memory.ram[(i + x as u16) as usize];
+            processor.memory.registers.v[x as usize] =
+                processor.memory.ram[(i + x as u16) as usize];
             //dbg!(processor.memory.registers.v[x as usize]);
             //dbg!(x);
         }
@@ -691,7 +802,7 @@ impl DRW {
         let i = processor.memory.registers.i as usize;
         let mut vec: Vec<bool> = Vec::new();
 
-        for byte in &processor.memory.ram[i.. i + self.size as usize] {
+        for byte in &processor.memory.ram[i..i + self.size as usize] {
             for x in 0..8 {
                 // Note: The inversion here is necessary, because the highest bit is the first one
                 vec.push((byte & (1 << (7 - x))) != 0);
@@ -711,11 +822,14 @@ impl Opcode for DRW {
 
         for y in 0..self.size {
             for x in 0..8 {
-                if processor.display.screen[((vy + y as u16) * 64 + vx + x as u16) as usize] != vec_sprite[(y * 8 + x) as usize] {
+                if processor.display.screen[((vy + y as u16) * 64 + vx + x as u16) as usize]
+                    != vec_sprite[(y * 8 + x) as usize]
+                {
                     processor.memory.registers.v[0xF] = 1;
                 }
-                
-                processor.display.screen[((vy + y as u16) * 64 + vx + x as u16) as usize] = vec_sprite[(y * 8 + x) as usize];
+
+                processor.display.screen[((vy + y as u16) * 64 + vx + x as u16) as usize] =
+                    vec_sprite[(y * 8 + x) as usize];
             }
         }
     }
@@ -727,7 +841,11 @@ impl Opcode for DRW {
 
 impl fmt::Display for DRW {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "DRW V{:X}, V{:X}, {:X}", self.reg_x, self.reg_y, self.size)
+        write!(
+            f,
+            "DRW V{:X}, V{:X}, {:X}",
+            self.reg_x, self.reg_y, self.size
+        )
     }
 }
 
@@ -735,12 +853,11 @@ impl Opcode for RNDVxByte {
     fn execute(&self, processor: &mut Processor) {
         // We need as u8 here, because otherwise rust says 256 > 1 Byte, even though the border is exclusive
         // that way a u16 or larger is generated (but still in the range of 0..255
-        let rnd:u8 = rand::thread_rng().gen_range(0, 256) as u8; // [0, 255]
+        let rnd: u8 = rand::thread_rng().gen_range(0, 256) as u8; // [0, 255]
         dbg!(rnd);
         dbg!(self.byte);
         processor.memory.registers.v[self.reg as usize] = rnd & self.byte;
         dbg!(processor.memory.registers.v[self.reg as usize]);
-
     }
 }
 

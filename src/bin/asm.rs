@@ -1,14 +1,14 @@
-extern crate emul8;
 extern crate clap;
+extern crate emul8;
 extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
-use pest::Parser;
-use emul8::internals::opcode::*;
+use clap::{App, Arg};
 use emul8::internals::opcode::Opcode;
+use emul8::internals::opcode::*;
 use emul8::internals::processor::*;
-use clap::{Arg, App};
+use pest::Parser;
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
 
@@ -18,17 +18,17 @@ pub struct ASMParser;
 
 pub struct LabelDefinition {
     pub name: String,
-    pub addr: u16
+    pub addr: u16,
 }
 
 #[derive(Debug)]
 pub struct JmpLabel {
-    pub name: String
+    pub name: String,
 }
 
 #[derive(Debug)]
 pub struct CallLabel {
-    pub name: String
+    pub name: String,
 }
 
 impl Opcode for JmpLabel {
@@ -49,7 +49,7 @@ impl std::fmt::Display for JmpLabel {
     }
 }
 
-impl Opcode for  CallLabel {
+impl Opcode for CallLabel {
     fn execute(&self, _processor: &mut Processor) {
         panic!("This Opcode is not meant to be executed and should be replaced by the assembler!");
     }
@@ -66,7 +66,10 @@ impl std::fmt::Display for CallLabel {
 
 // @TODO: Replace min() with assertions
 fn parse_register(pair: pest::iterators::Pair<Rule>) -> u8 {
-    std::cmp::min(0xF, u8::from_str_radix(pair.as_span().as_str().trim_start_matches('V'), 16).unwrap())
+    std::cmp::min(
+        0xF,
+        u8::from_str_radix(pair.as_span().as_str().trim_start_matches('V'), 16).unwrap(),
+    )
 }
 
 fn parse_constant(pair: pest::iterators::Pair<Rule>) -> u8 {
@@ -77,7 +80,7 @@ fn parse_constant(pair: pest::iterators::Pair<Rule>) -> u8 {
     } else {
         u16::from_str_radix(addr_s, 10).unwrap()
     };
-    
+
     if addr > 0xFF {
         panic!("Syntax Error: Constant {} too large!", addr_s);
     }
@@ -131,27 +134,51 @@ fn main() {
 
     let verbosity = std::cmp::min(args.occurrences_of("verbosity"), 2);
 
-    let offset = u16::from_str_radix(args.value_of("offset").unwrap().trim_start_matches("0x"), 16).expect("Unable to parse the offset value");
+    let offset = u16::from_str_radix(
+        args.value_of("offset").unwrap().trim_start_matches("0x"),
+        16,
+    )
+    .expect("Unable to parse the offset value");
 
     let outfilename = if args.is_present("outfile") {
         args.value_of("outfile").unwrap().to_string()
     } else {
-        format!("{}{}", args.value_of("infile").unwrap().trim_end_matches(".as8"), ".obj")
+        format!(
+            "{}{}",
+            args.value_of("infile").unwrap().trim_end_matches(".as8"),
+            ".obj"
+        )
     };
 
     if verbosity > 0 {
-        println!("Assembling {} as {}, starting at offset {:#X}", args.value_of("infile").unwrap(), &outfilename, offset);
+        println!(
+            "Assembling {} as {}, starting at offset {:#X}",
+            args.value_of("infile").unwrap(),
+            &outfilename,
+            offset
+        );
     }
- 
+
     /* Messy code, is there a more simple solution? */
     let outfile = match File::open(&outfilename) {
         Err(_e) => File::create(&outfilename).unwrap(),
-        Ok(_f) => if args.is_present("overwrite")  { OpenOptions::new().write(true).open(&outfilename).unwrap() } else { panic!("Won't overwrite the output file!")},
+        Ok(_f) => {
+            if args.is_present("overwrite") {
+                OpenOptions::new().write(true).open(&outfilename).unwrap()
+            } else {
+                panic!("Won't overwrite the output file!")
+            }
+        }
     };
 
     // into_inner to not have file as Rule but all the expressions
-    let contents = std::fs::read_to_string(args.value_of("infile").unwrap()).expect("Cannot read input file");
-    let parse_file = ASMParser::parse(Rule::file, &contents).expect("Parser Error").next().unwrap().into_inner();
+    let contents =
+        std::fs::read_to_string(args.value_of("infile").unwrap()).expect("Cannot read input file");
+    let parse_file = ASMParser::parse(Rule::file, &contents)
+        .expect("Parser Error")
+        .next()
+        .unwrap()
+        .into_inner();
     //dbg!(parseFile);
 
     let mut opcodes = Vec::new();
@@ -161,8 +188,8 @@ fn main() {
         //Rule::COMMENT => println!("Comment: {}", pair.as_span().as_str()),
         if pair.as_rule() == Rule::opcode {
             let opcode: Option<Box<dyn Opcode>> = match pair.as_span().as_str() {
-                "CLS" => Some(Box::new(CLS{})),
-                "RET" => Some(Box::new(RET{})),
+                "CLS" => Some(Box::new(CLS {})),
+                "RET" => Some(Box::new(RET {})),
                 _ => {
                     let opcode_str = pair.as_span().as_str();
                     let opcode_node = &mut pair.into_inner();
@@ -172,132 +199,164 @@ fn main() {
                             let operand1 = opcode_node.next().unwrap();
                             let operand2 = opcode_node.next().unwrap();
                             Some(match operand1.as_rule() {
-                                Rule::register => {
-                                    match operand2.as_rule() {
-                                        Rule::special_register => {
-                                            match operand2.as_span().as_str() {
-                                                "K" => Box::new(LDVxK{reg: parse_register(operand1)}),
-                                                "DT" => Box::new(LDVxDT{reg: parse_register(operand1)}),
-                                                "I" => Box::new(LDVxI{reg: parse_register(operand1)}),
-                                                _ => unreachable!("Invalid special register")
-                                            }
-                                        },
-                                        Rule::address => {
-                                            Box::new(LDVxByte{reg: parse_register(operand1), byte: parse_constant(operand2)})
-                                        }
-                                        _ => unreachable!()
-                                    }
+                                Rule::register => match operand2.as_rule() {
+                                    Rule::special_register => match operand2.as_span().as_str() {
+                                        "K" => Box::new(LDVxK {
+                                            reg: parse_register(operand1),
+                                        }),
+                                        "DT" => Box::new(LDVxDT {
+                                            reg: parse_register(operand1),
+                                        }),
+                                        "I" => Box::new(LDVxI {
+                                            reg: parse_register(operand1),
+                                        }),
+                                        _ => unreachable!("Invalid special register"),
+                                    },
+                                    Rule::address => Box::new(LDVxByte {
+                                        reg: parse_register(operand1),
+                                        byte: parse_constant(operand2),
+                                    }),
+                                    _ => unreachable!(),
                                 },
                                 Rule::special_register => {
                                     let register = parse_register(operand2);
                                     match operand1.as_span().as_str() {
-                                        "B" => Box::new(LDBVx{reg: register}),
-                                        "F" => Box::new(LDFVx{reg: register}),
-                                        "I" => Box::new(LDIVx{reg: register}),
-                                        "DT" => Box::new(LDDTVx{reg: register}),
-                                        _ => unreachable!("Invalid special register")
+                                        "B" => Box::new(LDBVx { reg: register }),
+                                        "F" => Box::new(LDFVx { reg: register }),
+                                        "I" => Box::new(LDIVx { reg: register }),
+                                        "DT" => Box::new(LDDTVx { reg: register }),
+                                        _ => unreachable!("Invalid special register"),
                                     }
                                 }
-                                _ => unreachable!()
+                                _ => unreachable!(),
                             })
-                        },
+                        }
                         Rule::call_operator => {
                             let operand = opcode_node.next().unwrap();
                             Some(match operand.as_rule() {
-                                Rule::address => Box::new(CALL{address: parse_address(operand)}),
-                                Rule::identifier => Box::new(CallLabel{name: operand.as_span().as_str().to_string()}),
-                                _ => unreachable!("Unknown CALL Operand {:?}", operand.as_rule())
+                                Rule::address => Box::new(CALL {
+                                    address: parse_address(operand),
+                                }),
+                                Rule::identifier => Box::new(CallLabel {
+                                    name: operand.as_span().as_str().to_string(),
+                                }),
+                                _ => unreachable!("Unknown CALL Operand {:?}", operand.as_rule()),
                             })
-                        },
+                        }
                         Rule::jmp_operator => {
                             let operand = opcode_node.next().unwrap();
                             Some(match operand.as_rule() {
-                                Rule::address => Box::new(JMP{address: parse_address(operand)}),
-                                Rule::identifier => Box::new(JmpLabel{name: operand.as_span().as_str().to_string()}),
-                                _ => unreachable!("Unknown JMP Operand {:?}", operand.as_rule())
+                                Rule::address => Box::new(JMP {
+                                    address: parse_address(operand),
+                                }),
+                                Rule::identifier => Box::new(JmpLabel {
+                                    name: operand.as_span().as_str().to_string(),
+                                }),
+                                _ => unreachable!("Unknown JMP Operand {:?}", operand.as_rule()),
                             })
-                        },
+                        }
                         Rule::conditionals => {
                             let register = parse_register(opcode_node.next().unwrap());
                             let op2 = opcode_node.next().unwrap();
 
                             Some(match operator.as_span().as_str() {
-                                "SE" => {
-                                    match op2.as_rule() {
-                                        Rule::register => Box::new(SEVxVy{reg_a: register, reg_b: parse_register(op2)}),
-                                        Rule::address => Box::new(SEVxByte{reg: register, byte: parse_constant(op2)}),
-                                        _ => unreachable!()
-                                    }
+                                "SE" => match op2.as_rule() {
+                                    Rule::register => Box::new(SEVxVy {
+                                        reg_a: register,
+                                        reg_b: parse_register(op2),
+                                    }),
+                                    Rule::address => Box::new(SEVxByte {
+                                        reg: register,
+                                        byte: parse_constant(op2),
+                                    }),
+                                    _ => unreachable!(),
                                 },
-                                "SNE" => {
-                                    match op2.as_rule() {
-                                        Rule::register => Box::new(SNEVxVy{reg_a: register, reg_b: parse_register(op2)}),
-                                        Rule::address => Box::new(SNEVxByte{reg: register, byte: parse_constant(op2)}),
-                                        _ => unreachable!()
-                                    }
+                                "SNE" => match op2.as_rule() {
+                                    Rule::register => Box::new(SNEVxVy {
+                                        reg_a: register,
+                                        reg_b: parse_register(op2),
+                                    }),
+                                    Rule::address => Box::new(SNEVxByte {
+                                        reg: register,
+                                        byte: parse_constant(op2),
+                                    }),
+                                    _ => unreachable!(),
                                 },
-                                _ => unreachable!()
+                                _ => unreachable!(),
                             })
-                        },
+                        }
                         Rule::math_operator => {
                             let op1 = opcode_node.next().unwrap();
                             let op2 = opcode_node.next().unwrap();
 
                             Some(match operator.as_span().as_str() {
-                                "ADD" => {
-                                    match op1.as_rule() {
-                                        Rule::special_register => {
-                                            assert_eq!(op1.as_span().as_str(), "I");
-                                            Box::new(ADDIVx{reg: parse_register(op2)})
-                                        },
-                                        Rule::register => {
-                                            match op2.as_rule() {
-                                                Rule::register => {
-                                                    Box::new(ADDVxVy{reg_a: parse_register(op1), reg_b: parse_register(op2)})
-                                                },
-                                                Rule::address => {
-                                                    Box::new(ADDVxByte{reg: parse_register(op1), byte: parse_constant(op2)})
-                                                },
-                                                _ => unreachable!()
-                                            }
-                                        },
-                                        _ => unreachable!()
+                                "ADD" => match op1.as_rule() {
+                                    Rule::special_register => {
+                                        assert_eq!(op1.as_span().as_str(), "I");
+                                        Box::new(ADDIVx {
+                                            reg: parse_register(op2),
+                                        })
                                     }
+                                    Rule::register => match op2.as_rule() {
+                                        Rule::register => Box::new(ADDVxVy {
+                                            reg_a: parse_register(op1),
+                                            reg_b: parse_register(op2),
+                                        }),
+                                        Rule::address => Box::new(ADDVxByte {
+                                            reg: parse_register(op1),
+                                            byte: parse_constant(op2),
+                                        }),
+                                        _ => unreachable!(),
+                                    },
+                                    _ => unreachable!(),
                                 },
-                                "SUB" => Box::new(SUBVxVy{reg_a: parse_register(op1), reg_b: parse_register(op2)}),
+                                "SUB" => Box::new(SUBVxVy {
+                                    reg_a: parse_register(op1),
+                                    reg_b: parse_register(op2),
+                                }),
                                 "SUBN" => unimplemented!(),
-                                _ => unreachable!()
+                                _ => unreachable!(),
                             })
-                        },
+                        }
                         Rule::ldi_operator => {
                             let op = opcode_node.next().unwrap();
-                            
+
                             Some(match op.as_rule() {
-                                Rule::register => Box::new(LDIVx{reg: parse_register(op)}),
-                                Rule::address => Box::new(LDIAddr{address: parse_address(op)}),
-                                _ => unreachable!()
+                                Rule::register => Box::new(LDIVx {
+                                    reg: parse_register(op),
+                                }),
+                                Rule::address => Box::new(LDIAddr {
+                                    address: parse_address(op),
+                                }),
+                                _ => unreachable!(),
                             })
-                        },
-                        Rule::drw_operator => Some(Box::new(DRW{
+                        }
+                        Rule::drw_operator => Some(Box::new(DRW {
                             reg_x: parse_register(opcode_node.next().unwrap()),
                             reg_y: parse_register(opcode_node.next().unwrap()),
-                            size: std::cmp::min(0xF, parse_constant(opcode_node.next().unwrap()))}
-                        )),
+                            size: std::cmp::min(0xF, parse_constant(opcode_node.next().unwrap())),
+                        })),
                         // Byte arithmetic is only allowed here because we know the string is no Unicode.
                         Rule::label_definition => {
                             let s = &opcode_str[..opcode_str.len() - 1];
-                            label_definitions.insert(s.to_string(), Box::new(LabelDefinition{name: s.to_string(), addr: (opcodes.len() * 2) as u16}));
+                            label_definitions.insert(
+                                s.to_string(),
+                                Box::new(LabelDefinition {
+                                    name: s.to_string(),
+                                    addr: (opcodes.len() * 2) as u16,
+                                }),
+                            );
                             None
-                        },
-                        _ => {
-                            panic!("Unknown OPCODE {}", opcode_str)
                         }
+                        _ => panic!("Unknown OPCODE {}", opcode_str),
                     }
                 }
             };
 
             // If opcode is Some, push it to opcodes
-            if let Some(op) = opcode { opcodes.push(op) };
+            if let Some(op) = opcode {
+                opcodes.push(op)
+            };
         }
     }
 
@@ -315,7 +374,9 @@ fn main() {
         if op.is::<JmpLabel>() {
             let lbl = op.downcast_ref::<JmpLabel>().unwrap();
             if label_definitions.contains_key(&lbl.name) {
-                let jmp: Box<dyn Opcode> = Box::new(JMP{address: label_definitions.get(&lbl.name).unwrap().addr + offset});
+                let jmp: Box<dyn Opcode> = Box::new(JMP {
+                    address: label_definitions.get(&lbl.name).unwrap().addr + offset,
+                });
                 *op = jmp; // like std::mem::replace(op, jmp), but doesn't care about the old value
             } else {
                 panic!("ERROR LNK001: Unresolved Label {}", &lbl.name);
@@ -323,7 +384,9 @@ fn main() {
         } else if op.is::<CallLabel>() {
             let lbl = op.downcast_ref::<CallLabel>().unwrap();
             if label_definitions.contains_key(&lbl.name) {
-                let call: Box<dyn Opcode> = Box::new(CALL{address: label_definitions.get(&lbl.name).unwrap().addr + offset});
+                let call: Box<dyn Opcode> = Box::new(CALL {
+                    address: label_definitions.get(&lbl.name).unwrap().addr + offset,
+                });
                 *op = call;
             } else {
                 panic!("ERROR LNK001: Unresolved Label {}", &lbl.name);
@@ -333,7 +396,9 @@ fn main() {
 
     let mut buf = BufWriter::new(outfile);
     opcodes.iter().map(|x| x.assemble()).for_each(move |x| {
-        buf.write_all(&[x.0]).expect("Error when writing to the object file!");
-        buf.write_all(&[x.1]).expect("Error when writing to the object file!");
+        buf.write_all(&[x.0])
+            .expect("Error when writing to the object file!");
+        buf.write_all(&[x.1])
+            .expect("Error when writing to the object file!");
     });
 }
