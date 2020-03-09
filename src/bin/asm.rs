@@ -175,7 +175,7 @@ fn main() {
     let contents =
         std::fs::read_to_string(args.value_of("infile").unwrap()).expect("Cannot read input file");
     let parse_file = ASMParser::parse(Rule::file, &contents)
-        .expect("Parser Error")
+        .unwrap_or_else(|e| panic!("{}", e))
         .next()
         .unwrap()
         .into_inner();
