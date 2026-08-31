@@ -851,9 +851,7 @@ impl fmt::Display for DRW {
 
 impl Opcode for RNDVxByte {
     fn execute(&self, processor: &mut Processor) {
-        // We need as u8 here, because otherwise rust says 256 > 1 Byte, even though the border is exclusive
-        // that way a u16 or larger is generated (but still in the range of 0..255
-        let rnd: u8 = rand::thread_rng().gen_range(0, 256) as u8; // [0, 255]
+        let rnd: u8 = rand::thread_rng().gen_range(0..=u8::MAX);
         dbg!(rnd);
         dbg!(self.byte);
         processor.memory.registers.v[self.reg as usize] = rnd & self.byte;
